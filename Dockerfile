@@ -33,4 +33,4 @@ EXPOSE 8000
 
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "realtime_bidding.asgi:application"]
+# CMD is handled in entrypoint.sh with dynamic port

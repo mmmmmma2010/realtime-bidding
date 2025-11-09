@@ -26,24 +26,73 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    depends_on:
+      - web1
+      - web2
+      - web3
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+  web1:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["watchfiles", "daphne -b 0.0.0.0 -p 8000 realtime_bidding.asgi:application"]
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://realtime:realtime@db:5432/realtime
+      - REDIS_URL=redis://redis:6379/0
+      - WEB_PORT=8001
+    expose:
+      - "8001"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - .:/app
+
+  web2:
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       - DATABASE_URL=postgres://realtime:realtime@db:5432/realtime
       - REDIS_URL=redis://redis:6379/0
+      - WEB_PORT=8002
+    expose:
+      - "8002"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - .:/app
+
+  web3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgres://realtime:realtime@db:5432/realtime
+      - REDIS_URL=redis://redis:6379/0
+      - WEB_PORT=8003
+    expose:
+      - "8003"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - .:/app
 
 volumes:
   pgdata:
