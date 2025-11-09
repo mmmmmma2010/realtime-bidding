@@ -1,0 +1,10 @@
+# Realtime Bidding System — Django + Channels
+
+This repository shows a minimal, production-minded realtime bidding system using:
+
+* Django (framework)
+* Django Channels (WebSocket support)
+* Daphne (ASGI server)
+* PostgreSQL (DB)
+* Redis (channel layer / pub-sub)
+* Docker & Docker Compose (local environment)

@@ -30,7 +30,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "realtime_bidding.asgi:application"]
+    command: ["watchfiles", "daphne -b 0.0.0.0 -p 8000 realtime_bidding.asgi:application"]
     volumes:
       - .:/app
     ports:
