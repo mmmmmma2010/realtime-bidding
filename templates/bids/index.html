@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Realtime Bids</title>
+  </head>
+  <body>
+    <h1>Realtime bidding</h1>
+    <div>
+      <label>Product ID: <input id="product-id" value="1" /></label>
+      <label>Your name: <input id="bidder" value="Mohamed" /></label>
+      <label>Amount: <input id="amount" value="10.00" /></label>
+      <button id="send">Place Bid</button>
+    </div>
+
+    <h2>Highest bid: <span id="highest">-</span></h2>
+    <ul id="events"></ul>
+
+    <script>
+      const productInput = document.getElementById('product-id')
+      const bidderInput = document.getElementById('bidder')
+      const amountInput = document.getElementById('amount')
+      const sendBtn = document.getElementById('send')
+      const highestEl = document.getElementById('highest')
+      const events = document.getElementById('events')
+
+      let socket
+
+      function connect() {
+        const productId = productInput.value
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+        const host = window.location.host
+        socket = new WebSocket(`${protocol}://${host}/ws/bids/${productId}/`)
+
+        socket.onopen = () => {
+          append('Connected')
+        }
+
+        socket.onmessage = (evt) => {
+          const data = JSON.parse(evt.data)
+          if (data.type === 'highest_bid') {
+            highestEl.textContent = data.amount + (data.bidder ? (' by ' + data.bidder) : '')
+            append('Highest updated: ' + data.amount)
+          } else if (data.type === 'rejected') {
+            append('Bid rejected: ' + data.message)
+          } else if (data.type === 'error') {
+            append('Error: ' + data.message)
+          }
+        }
+
+        socket.onclose = () => append('Disconnected')
+      }
+
+      function append(txt) {
+        const li = document.createElement('li')
+        li.textContent = `[${new Date().toLocaleTimeString()}] ${txt}`
+        events.prepend(li)
+      }
+
+      sendBtn.addEventListener('click', () => {
+        const amount = amountInput.value
+        const bidder = bidderInput.value
+        socket.send(JSON.stringify({action: 'place_bid', amount, bidder}))
+      })
+
+      // connect initially
+      connect()
+
+      // reconnect when product id changes
+      productInput.addEventListener('change', () => {
+        if (socket) socket.close()
+        connect()
+      })
+    </script>
+  </body>
+</html>
